@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 interface VaultItem {
   _id: string;
@@ -11,11 +12,20 @@ interface VaultItem {
 }
 
 export default function VaultPage() {
+  const router = useRouter();
   const [items, setItems] = useState<VaultItem[]>([]);
   const [newItem, setNewItem] = useState({ title: "", username: "", password: "", notes: "" });
   const [message, setMessage] = useState("");
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  // Logout handler
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      router.push("/signin");
+    }
+  };
 
   // Fetch vault items
   const fetchItems = async () => {
@@ -43,7 +53,6 @@ export default function VaultPage() {
       const data = await res.json();
 
       if (data && data._id) {
-        // Add item locally
         setItems([...items, data]);
         setNewItem({ title: "", username: "", password: "", notes: "" });
         setMessage("Item added successfully!");
@@ -62,7 +71,15 @@ export default function VaultPage() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
-      <h1 className="text-3xl font-bold mb-4">🔐 My Vault</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-3xl font-bold">🔐 My Vault</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
+        >
+          Logout
+        </button>
+      </div>
 
       <form onSubmit={handleAddItem} className="mb-4 space-y-2">
         <input
