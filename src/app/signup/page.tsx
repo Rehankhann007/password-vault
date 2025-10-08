@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -28,6 +28,7 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
       <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded shadow-md w-80">
         <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+
         <input
           type="email"
           placeholder="Email"
@@ -36,6 +37,7 @@ export default function SignupPage() {
           required
           className="w-full p-2 mb-4 rounded bg-gray-700"
         />
+
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
@@ -53,10 +55,20 @@ export default function SignupPage() {
             {showPassword ? "Hide" : "Show"}
           </button>
         </div>
+
         <button type="submit" className="w-full bg-blue-600 p-2 rounded">
           Sign Up
         </button>
+
         {message && <p className="mt-2 text-sm">{message}</p>}
+
+        {/* ✅ Already have account link */}
+        <p className="mt-4 text-sm text-gray-400">
+          Already have an account?{" "}
+          <Link href="/signin" className="text-blue-400 hover:underline">
+            Sign In
+          </Link>
+        </p>
       </form>
     </div>
   );

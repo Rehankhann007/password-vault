@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,6 +17,7 @@ export default function VaultPage() {
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
+  // Fetch vault items
   const fetchItems = async () => {
     if (!token) return;
     try {
@@ -27,7 +27,7 @@ export default function VaultPage() {
       const data = await res.json();
       if (Array.isArray(data)) setItems(data);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch vault items error:", err);
     }
   };
 
@@ -41,24 +41,29 @@ export default function VaultPage() {
         body: JSON.stringify(newItem),
       });
       const data = await res.json();
-      if (data.success) {
-        setItems([...items, data.item]);
+
+      if (data && data._id) {
+        // Add item locally
+        setItems([...items, data]);
         setNewItem({ title: "", username: "", password: "", notes: "" });
-        setMessage("Item added!");
+        setMessage("Item added successfully!");
+      } else {
+        setMessage("Failed to add item.");
       }
     } catch (err) {
-      console.error(err);
-      setMessage("Error adding item");
+      console.error("Add item error:", err);
+      setMessage("Error adding item.");
     }
   };
 
   useEffect(() => {
     fetchItems();
-  }, []);
+  }, [token]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <h1 className="text-3xl font-bold mb-4">🔐 My Vault</h1>
+
       <form onSubmit={handleAddItem} className="mb-4 space-y-2">
         <input
           type="text"
@@ -87,7 +92,9 @@ export default function VaultPage() {
           onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
           className="p-2 rounded bg-gray-700 w-full"
         />
-        <button type="submit" className="bg-blue-600 p-2 rounded w-full">Add Item</button>
+        <button type="submit" className="bg-blue-600 p-2 rounded w-full">
+          Add Item
+        </button>
       </form>
 
       {message && <p className="mb-2 text-sm">{message}</p>}
