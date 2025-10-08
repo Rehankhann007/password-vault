@@ -10,14 +10,15 @@ export async function POST(req: Request) {
 
     await connectToDatabase();
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const existingUser = await User.findOne({ email });
     if (existingUser) return NextResponse.json({ error: "User exists" }, { status: 400 });
 
-    const user = await User.create({ email, password: hashedPassword });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await User.create({ email, password: hashedPassword });
+
     return NextResponse.json({ message: "User created" });
-  } catch (err) {
-    console.error(err);
+  } catch (err: unknown) {
+    console.error("Signup error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

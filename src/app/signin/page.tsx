@@ -42,7 +42,7 @@ export default function SignInPage() {
         </div>
         <button type="submit" className="bg-blue-600 p-2 rounded">Sign In</button>
       </form>
-      <p className="mt-2 text-gray-400">Don't have an account? <a href="/signup" className="text-blue-500">Sign Up</a></p>
+      <p className="mt-2 text-gray-400">Don&apos;t have an account? <a href="/signup" className="text-blue-500">Sign Up</a></p>
       {error && <p className="text-red-500 mt-2">{error}</p>}
     </div>
   );

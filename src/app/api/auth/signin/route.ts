@@ -17,11 +17,11 @@ export async function POST(req: Request) {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
-    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: user._id.toString(), email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "7d" });
 
     return NextResponse.json({ token });
-  } catch (err) {
-    console.error(err);
+  } catch (err: unknown) {
+    console.error("Signin error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
