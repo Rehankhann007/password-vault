@@ -1,98 +1,111 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface VaultItem {
+  _id: string;
+  title: string;
+  username: string;
+  password: string;
+  notes?: string;
+}
 
 export default function VaultPage() {
-  const [items, setItems] = useState<any[]>([
-    // Demo items for UI
-    { _id: "1", title: "Demo Item 1", username: "user1", password: "pass1" },
-    { _id: "2", title: "Demo Item 2", username: "user2", password: "pass2" },
-  ]);
+  const [items, setItems] = useState<VaultItem[]>([]);
+  const [newItem, setNewItem] = useState({ title: "", username: "", password: "", notes: "" });
+  const [message, setMessage] = useState("");
 
-  const [newItem, setNewItem] = useState({
-    title: "",
-    username: "",
-    password: "",
-  });
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  // Add item locally (UI only)
-  const handleAdd = (e: React.FormEvent) => {
+  const fetchItems = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch("/api/vault", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) setItems(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAddItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!newItem.title || !newItem.username || !newItem.password) return;
-    setItems([...items, { ...newItem, _id: Date.now().toString() }]);
-    setNewItem({ title: "", username: "", password: "" });
+    if (!token) return;
+    try {
+      const res = await fetch("/api/vault", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(newItem),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setItems([...items, data.item]);
+        setNewItem({ title: "", username: "", password: "", notes: "" });
+        setMessage("Item added!");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Error adding item");
+    }
   };
 
-  // Delete item locally
-  const handleDelete = (_id: string) => {
-    setItems(items.filter((item) => item._id !== _id));
-  };
+  useEffect(() => {
+    fetchItems();
+  }, []);
 
   return (
-    <div style={{ maxWidth: "600px", margin: "2rem auto", fontFamily: "sans-serif" }}>
-      <h1 style={{ textAlign: "center" }}>🔐 My Vault</h1>
-
-      {/* Add Item Form */}
-      <form onSubmit={handleAdd} style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+    <div className="min-h-screen bg-gray-900 text-white p-4">
+      <h1 className="text-3xl font-bold mb-4">🔐 My Vault</h1>
+      <form onSubmit={handleAddItem} className="mb-4 space-y-2">
         <input
+          type="text"
           placeholder="Title"
           value={newItem.title}
           onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
-          required
+          className="p-2 rounded bg-gray-700 w-full"
         />
         <input
+          type="text"
           placeholder="Username"
           value={newItem.username}
           onChange={(e) => setNewItem({ ...newItem, username: e.target.value })}
-          required
+          className="p-2 rounded bg-gray-700 w-full"
         />
         <input
+          type="password"
           placeholder="Password"
           value={newItem.password}
           onChange={(e) => setNewItem({ ...newItem, password: e.target.value })}
-          required
+          className="p-2 rounded bg-gray-700 w-full"
         />
-        <button type="submit">Add</button>
+        <textarea
+          placeholder="Notes"
+          value={newItem.notes}
+          onChange={(e) => setNewItem({ ...newItem, notes: e.target.value })}
+          className="p-2 rounded bg-gray-700 w-full"
+        />
+        <button type="submit" className="bg-blue-600 p-2 rounded w-full">Add Item</button>
       </form>
 
-      {/* Vault Items */}
-      {items.length === 0 ? (
-        <p style={{ textAlign: "center" }}>No items found.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {items.map((item) => (
-            <li
-              key={item._id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "0.5rem",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                marginBottom: "0.5rem",
-              }}
-            >
-              <span>
-                <strong>{item.title}</strong> - {item.username} - {item.password}
-              </span>
-              <button
-                onClick={() => handleDelete(item._id)}
-                style={{
-                  background: "red",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "3px",
-                  cursor: "pointer",
-                  padding: "0.2rem 0.5rem",
-                }}
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {message && <p className="mb-2 text-sm">{message}</p>}
+
+      <div className="space-y-2">
+        {items.length === 0 ? (
+          <p>No items found.</p>
+        ) : (
+          items.map((item) => (
+            <div key={item._id} className="p-2 rounded bg-gray-800">
+              <h2 className="font-bold">{item.title}</h2>
+              <p>Username: {item.username}</p>
+              <p>Password: {item.password}</p>
+              {item.notes && <p>Notes: {item.notes}</p>}
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
