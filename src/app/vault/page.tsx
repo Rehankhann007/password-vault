@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 
 interface VaultItem {
   _id: string;
@@ -12,23 +11,13 @@ interface VaultItem {
 }
 
 export default function VaultPage() {
-  const router = useRouter();
   const [items, setItems] = useState<VaultItem[]>([]);
   const [newItem, setNewItem] = useState({ title: "", username: "", password: "", notes: "" });
   const [message, setMessage] = useState("");
 
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  // Logout handler
-  const handleLogout = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      router.push("/signin");
-    }
-  };
-
-  // Fetch vault items
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     if (!token) return;
     try {
       const res = await fetch("/api/vault", {
@@ -37,9 +26,9 @@ export default function VaultPage() {
       const data = await res.json();
       if (Array.isArray(data)) setItems(data);
     } catch (err) {
-      console.error("Fetch vault items error:", err);
+      console.error(err);
     }
-  };
+  }, [token]);
 
   const handleAddItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -51,7 +40,6 @@ export default function VaultPage() {
         body: JSON.stringify(newItem),
       });
       const data = await res.json();
-
       if (data && data._id) {
         setItems([...items, data]);
         setNewItem({ title: "", username: "", password: "", notes: "" });
@@ -60,25 +48,25 @@ export default function VaultPage() {
         setMessage("Failed to add item.");
       }
     } catch (err) {
-      console.error("Add item error:", err);
+      console.error(err);
       setMessage("Error adding item.");
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.href = "/signin";
+  };
+
   useEffect(() => {
     fetchItems();
-  }, [token]);
+  }, [fetchItems]);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">🔐 My Vault</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
-        >
-          Logout
-        </button>
+        <button onClick={handleLogout} className="bg-red-600 px-3 py-1 rounded">Logout</button>
       </div>
 
       <form onSubmit={handleAddItem} className="mb-4 space-y-2">

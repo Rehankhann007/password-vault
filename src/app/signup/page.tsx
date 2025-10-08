@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
-export default function SignupPage() {
+export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const res = await fetch("/api/auth/signup", {
@@ -18,58 +16,40 @@ export default function SignupPage() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      setMessage(data.message || "Signup successful!");
-    } catch (err) {
-      setMessage("Error signing up");
+      setMessage(data.message || "Account created successfully!");
+    } catch {
+      setMessage("Something went wrong.");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-      <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded shadow-md w-80">
-        <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
-
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white">
+      <h1 className="text-3xl font-bold mb-4">Sign Up</h1>
+      <form onSubmit={handleSubmit} className="space-y-2 w-80">
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          className="p-2 rounded bg-gray-700 w-full"
           required
-          className="w-full p-2 mb-4 rounded bg-gray-700"
         />
-
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full p-2 mb-4 rounded bg-gray-700"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-2 text-gray-300"
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
-        </div>
-
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="p-2 rounded bg-gray-700 w-full"
+          required
+        />
         <button type="submit" className="w-full bg-blue-600 p-2 rounded">
           Sign Up
         </button>
-
-        {message && <p className="mt-2 text-sm">{message}</p>}
-
-        {/* ✅ Already have account link */}
-        <p className="mt-4 text-sm text-gray-400">
-          Already have an account?{" "}
-          <Link href="/signin" className="text-blue-400 hover:underline">
-            Sign In
-          </Link>
-        </p>
       </form>
+      <p className="mt-2 text-gray-400">
+        Already have an account? <a href="/signin" className="text-blue-400">Sign In</a>
+      </p>
+      {message && <p className="mt-2">{message}</p>}
     </div>
   );
 }
