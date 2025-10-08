@@ -1,12 +1,13 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, model, models } from "mongoose";
 
-const VaultItemSchema = new mongoose.Schema({
+const VaultItemSchema = new Schema({
   userId: { type: String, required: true },
   title: { type: String, required: true },
-  username: { type: String },
-  password: { type: String, required: true }, // encrypted password
+  username: { type: String, required: true },
+  password: { type: String, required: true },
   url: { type: String },
   notes: { type: String },
-}, { timestamps: true });
+});
 
-export default mongoose.models.VaultItem || mongoose.model("VaultItem", VaultItemSchema);
+const VaultItem = models.VaultItem || model("VaultItem", VaultItemSchema);
+export default VaultItem;

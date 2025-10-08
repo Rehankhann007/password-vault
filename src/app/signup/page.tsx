@@ -1,11 +1,13 @@
 "use client";
-
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,40 +18,31 @@ export default function SignUpPage() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
-      setMessage(data.message || "Account created successfully!");
-    } catch {
-      setMessage("Something went wrong.");
+      if (data.message) {
+        router.push("/signin");
+      } else {
+        setError(data.error || "Signup failed");
+      }
+    } catch (err) {
+      setError("Server error");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-950 text-white">
-      <h1 className="text-3xl font-bold mb-4">Sign Up</h1>
-      <form onSubmit={handleSubmit} className="space-y-2 w-80">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="p-2 rounded bg-gray-700 w-full"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="p-2 rounded bg-gray-700 w-full"
-          required
-        />
-        <button type="submit" className="w-full bg-blue-600 p-2 rounded">
-          Sign Up
-        </button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 text-white">
+      <h1 className="text-4xl font-bold mb-4">Sign Up</h1>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2 w-80">
+        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className="p-2 rounded bg-gray-800"/>
+        <div className="relative">
+          <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="p-2 rounded bg-gray-800 w-full"/>
+          <span className="absolute right-2 top-2 cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
+            {showPassword ? "🙈" : "👁️"}
+          </span>
+        </div>
+        <button type="submit" className="bg-blue-600 p-2 rounded">Sign Up</button>
       </form>
-      <p className="mt-2 text-gray-400">
-        Already have an account? <a href="/signin" className="text-blue-400">Sign In</a>
-      </p>
-      {message && <p className="mt-2">{message}</p>}
+      <p className="mt-2 text-gray-400">Already have an account? <a href="/signin" className="text-blue-500">Sign In</a></p>
+      {error && <p className="text-red-500 mt-2">{error}</p>}
     </div>
   );
 }

@@ -8,12 +8,13 @@ export async function GET(req: Request) {
     const token = req.headers.get("authorization")?.split(" ")[1];
     if (!token) return NextResponse.json([], { status: 401 });
 
-    jwt.verify(token, process.env.JWT_SECRET as string);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
+    const userId = decoded.userId;
 
     await connectToDatabase();
-    const items = await VaultItem.find({});
-    return NextResponse.json(items); // JSON array hi return hona chahiye
-  } catch (err: unknown) {
+    const items = await VaultItem.find({ userId });
+    return NextResponse.json(items);
+  } catch (err) {
     console.error("Vault GET error:", err);
     return NextResponse.json([], { status: 500 });
   }
@@ -24,16 +25,16 @@ export async function POST(req: Request) {
     const token = req.headers.get("authorization")?.split(" ")[1];
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    jwt.verify(token, process.env.JWT_SECRET as string);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
+    const userId = decoded.userId;
 
     const body = await req.json();
     const { title, username, password, url, notes } = body;
 
     await connectToDatabase();
-    const item = await VaultItem.create({ title, username, password, url, notes, userId: "dummy" }); 
-    // TODO: Replace "dummy" with actual userId from token payload
+    const item = await VaultItem.create({ title, username, password, url, notes, userId });
     return NextResponse.json(item);
-  } catch (err: unknown) {
+  } catch (err) {
     console.error("Vault POST error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
@@ -53,7 +54,7 @@ export async function DELETE(req: Request) {
     await VaultItem.findByIdAndDelete(id);
 
     return NextResponse.json({ message: "Deleted" });
-  } catch (err: unknown) {
+  } catch (err) {
     console.error("Vault DELETE error:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
